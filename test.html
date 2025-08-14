@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片处理测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .result img {
+            max-width: 300px;
+            max-height: 300px;
+            border: 1px solid #ddd;
+        }
+        .error {
+            color: red;
+            background-color: #ffebee;
+            border-color: #f44336;
+        }
+        .success {
+            color: green;
+            background-color: #e8f5e8;
+            border-color: #4caf50;
+        }
+        input, select, button {
+            margin: 5px;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>图片处理测试</h1>
+    <p><strong>注意：图片文件大小限制为 6MB，现在支持多种输出格式并返回JSON响应</strong></p>
+    
+    <div class="form-section">
+        <h2>图片Resize测试</h2>
+        <p>支持只传宽度或高度，另一边会自动适应比例。两个都不传则返回原图。</p>
+        <form id="resizeForm">
+            <input type="file" name="image" accept="image/*" required><br><br>
+            宽度: <input type="number" name="width" placeholder="留空自动适应" min="1"><br><br>
+            高度: <input type="number" name="height" placeholder="留空自动适应" min="1"><br><br>
+            输出格式: <select name="format">
+                <option value="">保持原格式</option>
+                <option value="jpeg">JPEG</option>
+                <option value="png">PNG</option>
+                <option value="webp">WebP</option>
+                <option value="avif">AVIF</option>
+                <option value="tiff">TIFF</option>
+                <option value="gif">GIF</option>
+            </select><br><br>
+            <button type="submit">Resize图片</button>
+        </form>
+        <div id="resizeResult" class="result" style="display:none;"></div>
+    </div>
+    
+    <div class="form-section">
+        <h2>图片压缩测试</h2>
+        <form id="compressForm">
+            <input type="file" name="image" accept="image/*" required><br><br>
+            质量 (1-100): <input type="number" name="quality" value="80" min="1" max="100"><br><br>
+            压缩级别 (PNG, 0-9): <input type="number" name="compressionLevel" placeholder="6" min="0" max="9"><br><br>
+            WebP无损: <input type="checkbox" name="lossless"><br><br>
+            输出格式: <select name="format">
+                <option value="">保持原格式</option>
+                <option value="jpeg">JPEG</option>
+                <option value="png">PNG</option>
+                <option value="webp">WebP</option>
+                <option value="avif">AVIF</option>
+                <option value="tiff">TIFF</option>
+                <option value="gif">GIF</option>
+            </select><br><br>
+            <button type="submit">压缩图片</button>
+        </form>
+        <div id="compressResult" class="result" style="display:none;"></div>
+    </div>
+    
+    <div class="form-section">
+        <h2>图片处理测试 (Resize + 压缩)</h2>
+        <p>同样支持单边resize：只传宽度或高度，另一边自动适应。</p>
+        <form id="processForm">
+            <input type="file" name="image" accept="image/*" required><br><br>
+            宽度: <input type="number" name="width" placeholder="留空自动适应" min="1"><br><br>
+            高度: <input type="number" name="height" placeholder="留空自动适应" min="1"><br><br>
+            质量 (1-100): <input type="number" name="quality" value="80" min="1" max="100"><br><br>
+            压缩级别 (PNG, 0-9): <input type="number" name="compressionLevel" placeholder="6" min="0" max="9"><br><br>
+            WebP无损: <input type="checkbox" name="lossless"><br><br>
+            输出格式: <select name="format">
+                <option value="">保持原格式</option>
+                <option value="jpeg">JPEG</option>
+                <option value="png">PNG</option>
+                <option value="webp">WebP</option>
+                <option value="avif">AVIF</option>
+                <option value="tiff">TIFF</option>
+                <option value="gif">GIF</option>
+            </select><br><br>
+            <button type="submit">处理图片</button>
+        </form>
+        <div id="processResult" class="result" style="display:none;"></div>
+    </div>
+
+    <script>
+        function displayResult(resultDiv, response) {
+            if (response.success) {
+                const { originalImage, processedImage, processing } = response;
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    <h3>处理成功</h3>
+                    <div style="display: flex; gap: 20px;">
+                        <div>
+                            <h4>原始图片</h4>
+                            <p>文件名: ${originalImage.filename}</p>
+                            <p>格式: ${originalImage.format}</p>
+                            <p>尺寸: ${originalImage.width} x ${originalImage.height}</p>
+                            <p>大小: ${(originalImage.size / 1024).toFixed(2)} KB</p>
+                        </div>
+                        <div>
+                            <h4>处理后图片</h4>
+                            <p>格式: ${processedImage.format}</p>
+                            <p>尺寸: ${processedImage.width} x ${processedImage.height}</p>
+                            <p>大小: ${(processedImage.size / 1024).toFixed(2)} KB</p>
+                            <p>压缩率: ${(((originalImage.size - processedImage.size) / originalImage.size) * 100).toFixed(1)}%</p>
+                            <img src="${processedImage.base64}" alt="Processed image" />
+                            <br>
+                            <a href="${processedImage.base64}" download="${processedImage.filename}">下载图片</a>
+                        </div>
+                    </div>
+                    <div>
+                        <h4>处理参数</h4>
+                        <p>操作: ${processing.operations.join(', ')}</p>
+                        <pre>${JSON.stringify(processing.parameters, null, 2)}</pre>
+                    </div>
+                `;
+            } else {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<h3>处理失败</h3><p>${response.error}</p>`;
+            }
+            resultDiv.style.display = 'block';
+        }
+
+        async function handleFormSubmit(formId, endpoint, resultId) {
+            const form = document.getElementById(formId);
+            const resultDiv = document.getElementById(resultId);
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const formData = new FormData(form);
+                
+                try {
+                    resultDiv.innerHTML = '<p>处理中...</p>';
+                    resultDiv.className = 'result';
+                    resultDiv.style.display = 'block';
+                    
+                    const response = await fetch(`http://localhost:8000${endpoint}`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    displayResult(resultDiv, result);
+                } catch (error) {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<h3>网络错误</h3><p>${error.message}</p>`;
+                    resultDiv.style.display = 'block';
+                }
+            });
+        }
+
+        // Initialize form handlers
+        handleFormSubmit('resizeForm', '/api/resize', 'resizeResult');
+        handleFormSubmit('compressForm', '/api/compress', 'compressResult');
+        handleFormSubmit('processForm', '/api/process', 'processResult');
+    </script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "nodeModulesDir": "auto",
+  "imports": {
+    "sharp": "npm:sharp@^0.34.3",
+    "@std/http": "jsr:@std/http@^1.0.20"
+  },
+  "tasks": {
+    "start": "deno run --allow-net --allow-ffi --allow-env --allow-read server.ts"
+  }
+}
