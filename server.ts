@@ -74,10 +74,19 @@ function detectFormat(filename: string): SupportedFormat | null {
   }
 }
 
-async function getImageMetadata(buffer: ArrayBuffer, filename: string): Promise<ImageMetadata> {
+async function getImageMetadata(buffer: ArrayBuffer, filename: string, outputFormat?: string): Promise<ImageMetadata> {
   const metadata = await sharp(buffer).metadata();
+  
+  // If outputFormat is provided, update the filename extension
+  let finalFilename = filename;
+  if (outputFormat) {
+    const nameWithoutExt = filename.replace(/\.[^/.]+$/, '');
+    const extension = outputFormat === 'jpeg' ? 'jpg' : outputFormat;
+    finalFilename = `${nameWithoutExt}.${extension}`;
+  }
+  
   return {
-    filename,
+    filename: finalFilename,
     size: buffer.byteLength,
     format: metadata.format || 'unknown',
     width: metadata.width,
@@ -258,8 +267,9 @@ const handler = async (req: Request): Promise<Response> => {
       const originalMetadata = await getImageMetadata(buffer, file.name);
       const detectedFormat = detectFormat(file.name);
       
+      const outputFormat = format || detectedFormat || (originalMetadata.format as SupportedFormat);
       const resizedBuffer = await resizeImage(buffer, { width, height, format }, detectedFormat || originalMetadata.format);
-      const processedMetadata = await getImageMetadata(resizedBuffer, `resized_${file.name}`);
+      const processedMetadata = await getImageMetadata(resizedBuffer, `resized_${file.name}`, outputFormat);
       
       const result: ProcessingResult = {
         success: true,
@@ -333,13 +343,14 @@ const handler = async (req: Request): Promise<Response> => {
       const originalMetadata = await getImageMetadata(buffer, file.name);
       const detectedFormat = detectFormat(file.name);
       
+      const outputFormat = format || detectedFormat || (originalMetadata.format as SupportedFormat);
       const compressedBuffer = await compressImage(buffer, { 
         quality, 
         format, 
         compressionLevel, 
         lossless 
       }, detectedFormat || originalMetadata.format);
-      const processedMetadata = await getImageMetadata(compressedBuffer, `compressed_${file.name}`);
+      const processedMetadata = await getImageMetadata(compressedBuffer, `compressed_${file.name}`, outputFormat);
       
       const result: ProcessingResult = {
         success: true,
@@ -415,13 +426,14 @@ const handler = async (req: Request): Promise<Response> => {
       const originalMetadata = await getImageMetadata(buffer, file.name);
       const detectedFormat = detectFormat(file.name);
       
+      const outputFormat = format || detectedFormat || (originalMetadata.format as SupportedFormat);
       const processedBuffer = await resizeAndCompressImage(
         buffer, 
         { width, height, format }, 
         { quality, format, compressionLevel, lossless },
         detectedFormat || originalMetadata.format
       );
-      const processedMetadata = await getImageMetadata(processedBuffer, `processed_${file.name}`);
+      const processedMetadata = await getImageMetadata(processedBuffer, `processed_${file.name}`, outputFormat);
       
       const result: ProcessingResult = {
         success: true,
