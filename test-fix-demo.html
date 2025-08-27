@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图像缩放问题修复演示</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .demo-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .problem-demo {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+        }
+        .solution-demo {
+            background: #e8f5e8;
+            border-left: 4px solid #4caf50;
+        }
+        .code-example {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .test-form {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .result-preview {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            margin: 10px 0;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .result-preview img {
+            max-width: 200px;
+            max-height: 200px;
+            border: 1px solid #ddd;
+            margin: 10px;
+        }
+        input, select, button {
+            padding: 8px 12px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #2196F3;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 图像缩放问题修复演示</h1>
+    
+    <div class="demo-section problem-demo">
+        <h2>❌ 修复前的问题</h2>
+        <p>当同时提供 <span class="highlight">width</span> 和 <span class="highlight">height</span> 参数时：</p>
+        <div class="code-example">
+// 用户期望：1600x1600 → 1280x800
+POST /api/process
+FormData: { width: 1280, height: 800, image: file }
+
+// 实际结果：800x800 (不是期望的 1280x800)
+// 原因：使用了 fit: 'inside' 模式保持宽高比
+        </div>
+        <p><strong>问题</strong>：使用 <code>fit: 'inside'</code> 模式会保持原图宽高比，导致输出尺寸不是用户期望的精确尺寸。</p>
+    </div>
+
+    <div class="demo-section solution-demo">
+        <h2>✅ 修复后的解决方案</h2>
+        <p>现在默认使用 <span class="highlight">fit: 'fill'</span> 模式：</p>
+        <div class="code-example">
+// 现在的行为：1600x1600 → 1280x800
+POST /api/process
+FormData: { width: 1280, height: 800, image: file }
+
+// 实际结果：1280x800 (精确的目标尺寸！)
+// 原因：默认使用 fit: 'fill' 模式强制精确尺寸
+        </div>
+        <p><strong>解决方案</strong>：
+        <ul>
+            <li>默认使用 <code>fit: 'fill'</code> 确保精确尺寸</li>
+            <li>新增 <code>fit</code> 参数支持多种缩放模式</li>
+            <li>保持向后兼容性</li>
+        </ul>
+    </div>
+
+    <div class="demo-section">
+        <h2>🧪 实时测试演示</h2>
+        <p>上传一张图片，测试不同的缩放模式效果：</p>
+        
+        <div class="test-form">
+            <input type="file" id="testImage" accept="image/*" />
+            <input type="number" id="testWidth" placeholder="宽度" value="1280" />
+            <input type="number" id="testHeight" placeholder="高度" value="800" />
+            <select id="testFit">
+                <option value="fill">Fill (精确尺寸)</option>
+                <option value="cover">Cover (保持比例，裁剪)</option>
+                <option value="contain">Contain (保持比例，完整)</option>
+            </select>
+            <button onclick="testResize()">测试缩放</button>
+        </div>
+
+        <div class="result-preview" id="resultPreview">
+            选择图片并点击测试按钮查看效果
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>📋 新的缩放模式说明</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <th style="border: 1px solid #ddd; padding: 10px; background: #f5f5f5;">模式</th>
+                <th style="border: 1px solid #ddd; padding: 10px; background: #f5f5f5;">行为</th>
+                <th style="border: 1px solid #ddd; padding: 10px; background: #f5f5f5;">适用场景</th>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 10px;"><code>fill</code> (默认)</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">强制调整到精确尺寸，可能轻微变形</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">需要精确尺寸，允许轻微变形</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 10px;"><code>cover</code></td>
+                <td style="border: 1px solid #ddd; padding: 10px;">保持宽高比，覆盖整个目标区域，可能裁剪</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">填满区域，不介意裁剪</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 10px;"><code>contain</code></td>
+                <td style="border: 1px solid #ddd; padding: 10px;">保持宽高比，完全适应目标尺寸，可能有空白</td>
+                <td style="border: 1px solid #ddd; padding: 10px;">保持完整图像，允许空白</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="demo-section">
+        <h2>🔧 API 使用示例</h2>
+        <div class="code-example">
+# 默认行为 (fit=fill)
+curl -X POST http://localhost:8000/api/process \
+  -F "image=@photo.jpg" \
+  -F "width=1280" \
+  -F "height=800"
+
+# 显式指定缩放模式
+curl -X POST http://localhost:8000/api/process \
+  -F "image=@photo.jpg" \
+  -F "width=1280" \
+  -F "height=800" \
+  -F "fit=cover"
+
+# 仅缩放 (不压缩)
+curl -X POST http://localhost:8000/api/resize \
+  -F "image=@photo.jpg" \
+  -F "width=1280" \
+  -F "height=800" \
+  -F "fit=fill"
+        </div>
+    </div>
+
+    <script>
+        async function testResize() {
+            const fileInput = document.getElementById('testImage');
+            const width = document.getElementById('testWidth').value;
+            const height = document.getElementById('testHeight').value;
+            const fit = document.getElementById('testFit').value;
+            const resultDiv = document.getElementById('resultPreview');
+            
+            if (!fileInput.files[0]) {
+                alert('请先选择一张图片');
+                return;
+            }
+            
+            if (!width || !height) {
+                alert('请输入宽度和高度');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+            formData.append('width', width);
+            formData.append('height', height);
+            formData.append('fit', fit);
+            
+            try {
+                resultDiv.innerHTML = '<p>处理中...</p>';
+                
+                const response = await fetch('http://localhost:8000/api/resize', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const { originalImage, processedImage } = result;
+                    resultDiv.innerHTML = `
+                        <div style="display: flex; gap: 20px; align-items: center;">
+                            <div>
+                                <h4>原图</h4>
+                                <p>${originalImage.width} x ${originalImage.height}</p>
+                                <p>${(originalImage.size / 1024).toFixed(1)} KB</p>
+                            </div>
+                            <div>→</div>
+                            <div>
+                                <h4>结果 (${fit} 模式)</h4>
+                                <p>${processedImage.width} x ${processedImage.height}</p>
+                                <p>${(processedImage.size / 1024).toFixed(1)} KB</p>
+                                <img src="${processedImage.base64}" alt="处理结果" />
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p style="color: red;">处理失败: ${result.error}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">网络错误: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

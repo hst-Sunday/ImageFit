@@ -17,6 +17,7 @@ export async function handleResize(req: Request): Promise<Response> {
     const width = parseInt(formData.get("width") as string) || undefined;
     const height = parseInt(formData.get("height") as string) || undefined;
     const format = (formData.get("format") as string)?.toLowerCase() as SupportedFormat || undefined;
+    const fit = (formData.get("fit") as string) as 'cover' | 'contain' | 'fill' | 'inside' | 'outside' || undefined;
     
     const { 
       file, 
@@ -28,7 +29,7 @@ export async function handleResize(req: Request): Promise<Response> {
     const outputFormat = format || detectedFormat || (originalMetadata.format as SupportedFormat);
     const resizedBuffer = await resizeImage(
       buffer, 
-      { width, height, format }, 
+      { width, height, format, fit }, 
       detectedFormat || originalMetadata.format
     );
     const processedMetadata = await getImageMetadata(
@@ -46,7 +47,7 @@ export async function handleResize(req: Request): Promise<Response> {
       },
       processing: {
         operations: ['resize'],
-        parameters: { width, height, format }
+        parameters: { width, height, format, fit }
       }
     };
 

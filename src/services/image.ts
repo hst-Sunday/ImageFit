@@ -85,21 +85,26 @@ export async function resizeImage(
   options: ResizeOptions, 
   originalFormat?: string
 ): Promise<Buffer> {
-  const { width, height, format } = options;
+  const { width, height, format, fit } = options;
+  
+  // 智能选择默认fit模式
+  const defaultFit = (width && height) ? 'cover' : 'inside';
+  const actualFit = fit || defaultFit;
   
   const resizeOptions = { withoutEnlargement: true };
   let sharpInstance = sharp(buffer);
   
   // Apply resize if dimensions provided
   if (width && height) {
-    // 如果两边都有值，使用inside模式保持比例
-    sharpInstance = sharpInstance.resize(width, height, { ...resizeOptions, fit: 'inside' });
+    // 如果两边都有值，使用智能选择的fit模式
+    // 默认 'cover'：保持比例，填充目标区域，可能裁剪
+    sharpInstance = sharpInstance.resize(width, height, { ...resizeOptions, fit: actualFit });
   } else if (width && !height) {
-    // 只有宽度，高度自动适应
-    sharpInstance = sharpInstance.resize(width, null, resizeOptions);
+    // 只有宽度，高度自动适应，使用 'inside' 保持比例
+    sharpInstance = sharpInstance.resize(width, null, { ...resizeOptions, fit: 'inside' });
   } else if (!width && height) {
-    // 只有高度，宽度自动适应
-    sharpInstance = sharpInstance.resize(null, height, resizeOptions);
+    // 只有高度，宽度自动适应，使用 'inside' 保持比例
+    sharpInstance = sharpInstance.resize(null, height, { ...resizeOptions, fit: 'inside' });
   }
   
   // Apply format conversion
@@ -124,22 +129,27 @@ export async function resizeAndCompressImage(
   compressOptions: CompressOptions,
   originalFormat?: string
 ): Promise<Buffer> {
-  const { width, height, format: resizeFormat } = resizeOptions;
+  const { width, height, format: resizeFormat, fit } = resizeOptions;
   const { format: compressFormat } = compressOptions;
   
+  // 智能选择默认fit模式
+  const defaultFit = (width && height) ? 'cover' : 'inside';
+  const actualFit = fit || defaultFit;
+  
   let sharpInstance = sharp(buffer);
-  const resizeOpts = { withoutEnlargement: true, fit: 'inside' as const };
+  const resizeOpts = { withoutEnlargement: true };
   
   // Apply resize if dimensions provided
   if (width && height) {
-    // 如果两边都有值，使用inside模式保持比例
-    sharpInstance = sharpInstance.resize(width, height, resizeOpts);
+    // 如果两边都有值，使用智能选择的fit模式
+    // 默认 'cover'：保持比例，填充目标区域，可能裁剪
+    sharpInstance = sharpInstance.resize(width, height, { ...resizeOpts, fit: actualFit });
   } else if (width && !height) {
-    // 只有宽度，高度自动适应
-    sharpInstance = sharpInstance.resize(width, null, resizeOpts);
+    // 只有宽度，高度自动适应，使用 'inside' 保持比例
+    sharpInstance = sharpInstance.resize(width, null, { ...resizeOpts, fit: 'inside' });
   } else if (!width && height) {
-    // 只有高度，宽度自动适应
-    sharpInstance = sharpInstance.resize(null, height, resizeOpts);
+    // 只有高度，宽度自动适应，使用 'inside' 保持比例
+    sharpInstance = sharpInstance.resize(null, height, { ...resizeOpts, fit: 'inside' });
   }
   
   // Use format from compress options, then resize options, then original format

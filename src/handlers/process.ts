@@ -20,6 +20,7 @@ export async function handleProcess(req: Request): Promise<Response> {
     const format = (formData.get("format") as string)?.toLowerCase() as SupportedFormat || undefined;
     const compressionLevel = parseInt(formData.get("compressionLevel") as string) || undefined;
     const lossless = formData.get("lossless") === "true";
+    const fit = (formData.get("fit") as string) as 'cover' | 'contain' | 'fill' | 'inside' | 'outside' || undefined;
     
     const { 
       file, 
@@ -31,7 +32,7 @@ export async function handleProcess(req: Request): Promise<Response> {
     const outputFormat = format || detectedFormat || (originalMetadata.format as SupportedFormat);
     const processedBuffer = await resizeAndCompressImage(
       buffer, 
-      { width, height, format }, 
+      { width, height, format, fit }, 
       { quality, format, compressionLevel, lossless },
       detectedFormat || originalMetadata.format
     );
@@ -50,7 +51,7 @@ export async function handleProcess(req: Request): Promise<Response> {
       },
       processing: {
         operations: ['resize', 'compress'],
-        parameters: { width, height, quality, format, compressionLevel, lossless }
+        parameters: { width, height, quality, format, compressionLevel, lossless, fit }
       }
     };
 

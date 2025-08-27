@@ -68,6 +68,7 @@ Resize images with optional format conversion.
 - `width` (number, optional): Target width in pixels
 - `height` (number, optional): Target height in pixels  
 - `format` (string, optional): Output format (`jpeg`, `png`, `webp`, `avif`, `tiff`, `gif`)
+- `fit` (string, optional): Resize fit mode (`cover`, `contain`, `inside`, `fill`, `outside`). Default: intelligent selection (`inside` for single dimension, `cover` for both dimensions)
 
 **Example:**
 ```bash
@@ -99,7 +100,7 @@ curl -X POST http://localhost:8000/api/compress \
 Combined resize and compress operations.
 
 **Parameters:**
-Combines all parameters from resize and compress endpoints.
+Combines all parameters from resize and compress endpoints, including the new `fit` parameter.
 
 **Example:**
 ```bash

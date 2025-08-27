@@ -4,10 +4,13 @@
 
 export type SupportedFormat = 'jpeg' | 'png' | 'webp' | 'avif' | 'tiff' | 'gif';
 
+export type ResizeFit = 'cover' | 'contain' | 'fill' | 'inside' | 'outside';
+
 export interface ResizeOptions {
   width?: number;
   height?: number;
   format?: SupportedFormat;
+  fit?: ResizeFit;
 }
 
 export interface CompressOptions {

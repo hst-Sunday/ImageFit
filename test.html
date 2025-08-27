@@ -52,6 +52,13 @@
     <div class="form-section">
         <h2>图片Resize测试</h2>
         <p>支持只传宽度或高度，另一边会自动适应比例。两个都不传则返回原图。</p>
+        <p><strong>智能缩放模式说明：</strong></p>
+        <ul>
+            <li><strong>智能选择</strong>: 单个维度时使用 Inside，双维度时使用 Cover</li>
+            <li><strong>Cover</strong>: 保持比例，覆盖整个目标区域，可能裁剪</li>
+            <li><strong>Inside</strong>: 保持比例，完全适应目标尺寸，可能有空白</li>
+            <li><strong>Fill</strong>: 强制调整到精确尺寸，可能轻微变形</li>
+        </ul>
         <form id="resizeForm">
             <input type="file" name="image" accept="image/*" required><br><br>
             宽度: <input type="number" name="width" placeholder="留空自动适应" min="1"><br><br>
@@ -64,6 +71,14 @@
                 <option value="avif">AVIF</option>
                 <option value="tiff">TIFF</option>
                 <option value="gif">GIF</option>
+            </select><br><br>
+            缩放模式: <select name="fit">
+                <option value="">智能选择 (单维度:inside, 双维度:cover)</option>
+                <option value="cover">Cover (裁剪填充，保持比例)</option>
+                <option value="contain">Contain (完整适应，保持比例)</option>
+                <option value="inside">Inside (同 Contain)</option>
+                <option value="fill">Fill (精确尺寸，可能变形)</option>
+                <option value="outside">Outside (可能超出边界)</option>
             </select><br><br>
             <button type="submit">Resize图片</button>
         </form>
@@ -94,6 +109,12 @@
     <div class="form-section">
         <h2>图片处理测试 (Resize + 压缩)</h2>
         <p>同样支持单边resize：只传宽度或高度，另一边自动适应。</p>
+        <p><strong>智能缩放模式！</strong>现在会根据输入参数智能选择最佳的缩放模式：</p>
+        <ul>
+            <li>只提供一个维度 → 使用 <code>inside</code> 保持比例</li>
+            <li>同时提供宽高 → 使用 <code>cover</code> 填充目标区域</li>
+            <li>可通过 <code>fit</code> 参数覆盖默认行为</li>
+        </ul>
         <form id="processForm">
             <input type="file" name="image" accept="image/*" required><br><br>
             宽度: <input type="number" name="width" placeholder="留空自动适应" min="1"><br><br>
@@ -109,6 +130,14 @@
                 <option value="avif">AVIF</option>
                 <option value="tiff">TIFF</option>
                 <option value="gif">GIF</option>
+            </select><br><br>
+            缩放模式: <select name="fit">
+                <option value="">智能选择 (单维度:inside, 双维度:cover)</option>
+                <option value="cover">Cover (裁剪填充，保持比例)</option>
+                <option value="contain">Contain (完整适应，保持比例)</option>
+                <option value="inside">Inside (同 Contain)</option>
+                <option value="fill">Fill (精确尺寸，可能变形)</option>
+                <option value="outside">Outside (可能超出边界)</option>
             </select><br><br>
             <button type="submit">处理图片</button>
         </form>

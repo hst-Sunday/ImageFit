@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能缩放模式演示</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .demo-section {
+            background: white;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .smart-demo {
+            background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e8 100%);
+            border-left: 4px solid #2196F3;
+        }
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .scenario {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        .scenario h4 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .code-example {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        .test-area {
+            background: #fff;
+            border: 2px dashed #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .test-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        .test-controls input, .test-controls select, .test-controls button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .test-controls button {
+            background: #2196F3;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        .test-controls button:hover {
+            background: #1976D2;
+        }
+        .result-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .result-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .result-card img {
+            max-width: 100%;
+            max-height: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .smart-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧠 智能缩放模式演示</h1>
+    
+    <div class="demo-section smart-demo">
+        <h2>🎯 智能默认策略 <span class="smart-badge">SMART</span></h2>
+        <p>系统现在会根据输入参数智能选择最佳的缩放模式：</p>
+        
+        <div class="comparison-grid">
+            <div class="scenario">
+                <h4>📏 单维度缩放</h4>
+                <div class="code-example">
+width: 800, height: undefined
+↓
+默认使用: fit = 'inside'
+保持原图比例，适应指定宽度
+                </div>
+                <p><strong>适用场景</strong>：等比例缩放，保持图像完整性</p>
+            </div>
+            
+            <div class="scenario">
+                <h4>📐 双维度缩放</h4>
+                <div class="code-example">
+width: 800, height: 600
+↓  
+默认使用: fit = 'cover'
+保持比例，填充目标区域
+                </div>
+                <p><strong>适用场景</strong>：生成缩略图，填充指定区域</p>
+            </div>
+        </div>
+        
+        <div style="background: #e8f5e8; padding: 15px; border-radius: 6px; margin: 15px 0;">
+            <strong>🎨 灵活覆盖</strong>：可通过 <span class="highlight">fit</span> 参数显式指定模式，覆盖智能默认行为
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>🧪 实时测试对比</h2>
+        <p>上传图片测试不同场景下的智能缩放效果：</p>
+        
+        <div class="test-area">
+            <div class="test-controls">
+                <input type="file" id="testImage" accept="image/*" />
+                <input type="number" id="testWidth" placeholder="宽度" value="400" />
+                <input type="number" id="testHeight" placeholder="高度" value="" />
+                <select id="testFit">
+                    <option value="">智能选择</option>
+                    <option value="cover">Cover</option>
+                    <option value="inside">Inside</option>
+                    <option value="contain">Contain</option>
+                    <option value="fill">Fill</option>
+                </select>
+                <button onclick="testSmartResize()">测试智能缩放</button>
+            </div>
+            
+            <div id="resultDisplay" class="result-display" style="display: none;">
+                <div class="result-card">
+                    <h4>原图</h4>
+                    <div id="originalInfo"></div>
+                </div>
+                <div class="result-card">
+                    <h4>处理结果</h4>
+                    <div id="processedInfo"></div>
+                    <div id="processedImage"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>📋 智能策略详解</h2>
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <thead>
+                <tr style="background: #f8f9fa;">
+                    <th style="border: 1px solid #ddd; padding: 12px;">输入条件</th>
+                    <th style="border: 1px solid #ddd; padding: 12px;">智能选择</th>
+                    <th style="border: 1px solid #ddd; padding: 12px;">行为说明</th>
+                    <th style="border: 1px solid #ddd; padding: 12px;">典型用途</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 12px;"><code>width: 800, height: null</code></td>
+                    <td style="border: 1px solid #ddd; padding: 12px;"><span class="highlight">inside</span></td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">保持比例，宽度=800，高度自适应</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">响应式图片、等比例缩放</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 12px;"><code>width: null, height: 600</code></td>
+                    <td style="border: 1px solid #ddd; padding: 12px;"><span class="highlight">inside</span></td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">保持比例，高度=600，宽度自适应</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">纵向布局、高度限制</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 12px;"><code>width: 800, height: 600</code></td>
+                    <td style="border: 1px solid #ddd; padding: 12px;"><span class="highlight">cover</span></td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">保持比例，填充800x600区域，可能裁剪</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">头像、卡片缩略图</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 12px;">任何条件 + <code>fit: 'fill'</code></td>
+                    <td style="border: 1px solid #ddd; padding: 12px;"><span class="highlight">fill</span></td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">强制精确尺寸，可能变形</td>
+                    <td style="border: 1px solid #ddd; padding: 12px;">固定尺寸要求</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="demo-section">
+        <h2>💡 使用建议</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <h4>🔧 API 调用示例</h4>
+                <div class="code-example">
+# 智能单维度缩放 (自动使用 inside)
+curl -X POST http://localhost:8000/api/resize \
+  -F "image=@photo.jpg" \
+  -F "width=800"
+
+# 智能双维度缩放 (自动使用 cover)  
+curl -X POST http://localhost:8000/api/resize \
+  -F "image=@photo.jpg" \
+  -F "width=800" \
+  -F "height=600"
+  
+# 显式指定模式 (覆盖智能选择)
+curl -X POST http://localhost:8000/api/resize \
+  -F "image=@photo.jpg" \
+  -F "width=800" \
+  -F "height=600" \
+  -F "fit=fill"
+                </div>
+            </div>
+            <div>
+                <h4>🎨 最佳实践</h4>
+                <ul>
+                    <li><strong>响应式图片</strong>：只设置宽度，让高度自适应</li>
+                    <li><strong>卡片缩略图</strong>：设置宽高，使用默认 cover 模式</li>
+                    <li><strong>完整显示</strong>：设置宽高 + fit=contain</li>
+                    <li><strong>精确尺寸</strong>：设置宽高 + fit=fill</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function testSmartResize() {
+            const fileInput = document.getElementById('testImage');
+            const width = document.getElementById('testWidth').value;
+            const height = document.getElementById('testHeight').value;
+            const fit = document.getElementById('testFit').value;
+            const resultDisplay = document.getElementById('resultDisplay');
+            const originalInfo = document.getElementById('originalInfo');
+            const processedInfo = document.getElementById('processedInfo');
+            const processedImage = document.getElementById('processedImage');
+            
+            if (!fileInput.files[0]) {
+                alert('请先选择一张图片');
+                return;
+            }
+            
+            if (!width && !height) {
+                alert('请输入至少一个维度');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+            if (width) formData.append('width', width);
+            if (height) formData.append('height', height);
+            if (fit) formData.append('fit', fit);
+            
+            try {
+                // 显示加载状态
+                processedInfo.innerHTML = '<p>处理中...</p>';
+                processedImage.innerHTML = '';
+                resultDisplay.style.display = 'grid';
+                
+                const response = await fetch('http://localhost:8000/api/resize', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const { originalImage, processedImage: processed } = result;
+                    
+                    // 显示原图信息
+                    originalInfo.innerHTML = `
+                        <p>尺寸: ${originalImage.width} x ${originalImage.height}</p>
+                        <p>大小: ${(originalImage.size / 1024).toFixed(1)} KB</p>
+                        <p>格式: ${originalImage.format}</p>
+                    `;
+                    
+                    // 确定使用的fit模式
+                    const usedFit = fit || (width && height ? 'cover' : 'inside');
+                    const intelligentChoice = !fit ? ' (智能选择)' : ' (手动指定)';
+                    
+                    // 显示处理结果
+                    processedInfo.innerHTML = `
+                        <p>尺寸: ${processed.width} x ${processed.height}</p>
+                        <p>大小: ${(processed.size / 1024).toFixed(1)} KB</p>
+                        <p>模式: <strong>${usedFit}</strong>${intelligentChoice}</p>
+                        <p>输入: ${width || 'auto'} x ${height || 'auto'}</p>
+                    `;
+                    
+                    processedImage.innerHTML = `<img src="${processed.base64}" alt="处理结果" />`;
+                    
+                } else {
+                    processedInfo.innerHTML = `<p style="color: red;">处理失败: ${result.error}</p>`;
+                    processedImage.innerHTML = '';
+                }
+            } catch (error) {
+                processedInfo.innerHTML = `<p style="color: red;">网络错误: ${error.message}</p>`;
+                processedImage.innerHTML = '';
+            }
+        }
+        
+        // 监听输入变化，显示智能选择预览
+        function updateSmartPreview() {
+            const width = document.getElementById('testWidth').value;
+            const height = document.getElementById('testHeight').value;
+            const fit = document.getElementById('testFit').value;
+            
+            let preview = '';
+            if (!fit) {
+                if (width && height) {
+                    preview = ' → 智能选择: cover';
+                } else if (width || height) {
+                    preview = ' → 智能选择: inside';
+                }
+            }
+            
+            // 可以在这里添加实时预览逻辑
+        }
+        
+        document.getElementById('testWidth').addEventListener('input', updateSmartPreview);
+        document.getElementById('testHeight').addEventListener('input', updateSmartPreview);
+        document.getElementById('testFit').addEventListener('change', updateSmartPreview);
+    </script>
+</body>
+</html>
