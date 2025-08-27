@@ -5,6 +5,17 @@
     "@std/http": "jsr:@std/http@^1.0.20"
   },
   "tasks": {
-    "start": "deno run --allow-net --allow-ffi --allow-env --allow-read server.ts"
+    "start": "deno run --allow-net --allow-ffi --allow-env --allow-read server.ts",
+    "dev": "deno run --allow-net --allow-ffi --allow-env --allow-read --watch src/app.ts",
+    "check": "deno check **/*.ts",
+    "lint": "deno lint src/"
+  },
+  "fmt": {
+    "include": ["src/", "server.ts"],
+    "exclude": ["node_modules/"]
+  },
+  "lint": {
+    "include": ["src/", "server.ts"],
+    "exclude": ["node_modules/"]
   }
 }
